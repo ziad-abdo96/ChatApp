@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="D:/Projects/CSharp/aspDotNetCore/Api/ChatApp/ChatApp.API/ChatApp.API.csproj" />
+  <Project Path="D:/Projects/CSharp/aspDotNetCore/Api/ChatApp/ChatApp.Application/ChatApp.Application.csproj" />
+  <Project Path="D:/Projects/CSharp/aspDotNetCore/Api/ChatApp/ChatApp.Domain/ChatApp.Domain.csproj" />
+  <Project Path="D:/Projects/CSharp/aspDotNetCore/Api/ChatApp/ChatApp.Infrastructure/ChatApp.Infrastructure.csproj" />
+</Solution>

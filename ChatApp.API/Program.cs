@@ -1,6 +1,7 @@
 
 using ChatApp.Domain.Interfaces;
 using ChatApp.Infrastructure.Data;
+using ChatApp.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.API
@@ -21,8 +22,8 @@ namespace ChatApp.API
 			builder.Services.AddDbContext<AppDbContext>(options
 				=> options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-			builder.Services.AddScoped<IUserRepository, IUserRepository>();
-			builder.Services.AddScoped<IMessageRepository, IMessageRepository>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 			var app = builder.Build();
 

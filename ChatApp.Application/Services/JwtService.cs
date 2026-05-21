@@ -1,0 +1,47 @@
+﻿using ChatApp.Application.Interfaces;
+using ChatApp.Domain.Entities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace ChatApp.Application.Services
+{
+	public class JwtService : IJwtService
+	{
+		private readonly IConfiguration _configuration;
+
+		public JwtService(IConfiguration configuration)
+		{
+			_configuration = configuration;
+		}
+		public string GenerateToken(User user)
+		{
+			var claims = new[]
+			{
+				new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+				new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+				new Claim(JwtRegisteredClaimNames.Email, user.Email),
+				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+			};
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+			var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+			var tokenDescriptor = new SecurityTokenDescriptor
+			{
+				Subject = new ClaimsIdentity(claims),
+				Issuer = _configuration["Jwt:Issuer"],
+				Audience = _configuration["Jwt:Audience"],
+				SigningCredentials = credential,
+				Expires = DateTime.UtcNow.AddHours(1),
+			};
+
+			var tokenHandler = new JwtSecurityTokenHandler();
+			var tokenGenerated = tokenHandler.CreateToken(tokenDescriptor);
+
+			return tokenHandler.WriteToken(tokenGenerated);
+		}
+	}
+}

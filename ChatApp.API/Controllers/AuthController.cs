@@ -1,4 +1,6 @@
 ﻿using ChatApp.Application.DTOs;
+using ChatApp.Application.Interfaces;
+using ChatApp.Application.Services;
 using ChatApp.Domain.Entities;
 using ChatApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -10,23 +12,24 @@ namespace ChatApp.API.Controllers
 	public class AuthController: ControllerBase
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly IJwtService _jwtService;
 
-		public AuthController(IUserRepository userRepository)
+		public AuthController(IUserRepository userRepository, IJwtService jwtService)
 		{
 			_userRepository = userRepository;
+			_jwtService = jwtService;
 		}
 
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
 		{
 			var user = await _userRepository.GetByEmailAsync(loginDTO.Email);
-		
-			if(user == null)
-				return Unauthorized(); 
 
-			if (!BCrypt.Net.BCrypt.Verify(loginDTO.Password, user.PasswordHash))
-				return Unauthorized();
-			return Ok("Login Success");
+			if (user == null || !BCrypt.Net.BCrypt.Verify(loginDTO.Password, user.PasswordHash))
+				return Unauthorized(new { Message = "Invalid email or password" });
+
+			var token = _jwtService.GenerateToken(user);
+			return Ok(new { Token = token });
 		}
 
 		[HttpPost("register")]
@@ -46,7 +49,7 @@ namespace ChatApp.API.Controllers
 			};
 			await _userRepository.AddAsync(newUser);
 
-			return Ok("Registration Success");
+			return StatusCode(201, new { Message = "Registration Success" });
 		}
 	}
 }

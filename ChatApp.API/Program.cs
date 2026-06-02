@@ -1,4 +1,5 @@
 
+using ChatApp.API.Hubs;
 using ChatApp.Application.Interfaces;
 using ChatApp.Application.Services;
 using ChatApp.Domain.Interfaces;
@@ -22,6 +23,8 @@ namespace ChatApp.API
 			builder.Services.AddControllers();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSignalR();
+
 			builder.Services.AddSwaggerGen(options =>
 			{
 				options.SwaggerDoc("v1", new()
@@ -96,6 +99,7 @@ namespace ChatApp.API
 			app.UseAuthentication();
 			app.UseAuthorization();
 
+			app.MapHub<ChatHub>("/chat"); 
 
 			app.MapControllers();
 

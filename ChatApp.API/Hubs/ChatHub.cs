@@ -8,7 +8,7 @@ namespace ChatApp.API.Hubs
 	[Authorize]
 	public class ChatHub : Hub
 	{
-		private readonly HashSet<string> _onlineUsers = new();
+		private static readonly HashSet<string> _onlineUsers = new();
 		private readonly IMessageRepository _messageRepository;
 
 		public ChatHub(IMessageRepository messageRepository)
@@ -40,7 +40,8 @@ namespace ChatApp.API.Hubs
 
 		public async Task SendMessage(string message)
 		{
-
+			if (string.IsNullOrWhiteSpace(message))
+				return;
 			var userName = Context.User?.Identity?.Name;
 			var userId = int.Parse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
 			var newMessage = new Message

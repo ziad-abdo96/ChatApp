@@ -72,19 +72,34 @@ namespace ChatApp.API
 				throw new InvalidOperationException("Jwt string is missing from configuration.");
 			}
 
-			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-			{
-				options.SaveToken = true;
-				options.TokenValidationParameters = new TokenValidationParameters
+			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+				.AddJwtBearer(options =>
 				{
-					ValidateIssuer = true,
-					ValidateAudience = true,
-					ValidateIssuerSigningKey = true,
-					ValidIssuer = builder.Configuration["Jwt:Issuer"],
-					ValidAudience = builder.Configuration["Jwt:Audience"],
-					IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-				};
-			});
+					options.SaveToken = true;
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,
+						ValidateAudience = true,
+						ValidateIssuerSigningKey = true,
+						ValidIssuer = builder.Configuration["Jwt:Issuer"],
+						ValidAudience = builder.Configuration["Jwt:Audience"],
+						IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+					};
+
+					options.Events = new JwtBearerEvents
+					{
+						OnMessageReceived = context =>
+						{
+							var accessToken = context.HttpContext.Request.Query["access_token"];
+							var path = context.HttpContext.Request.Path;
+							if(!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+							{
+								context.Token = accessToken;
+							}
+							return Task.CompletedTask;
+						}
+					};
+				});
 			var app = builder.Build();
 
 			// Configure the HTTP request pipeline.
@@ -99,7 +114,11 @@ namespace ChatApp.API
 			app.UseAuthentication();
 			app.UseAuthorization();
 
-			app.MapHub<ChatHub>("/chat"); 
+	
+			app.UseDefaultFiles();
+			app.UseStaticFiles();
+
+			app.MapHub<ChatHub>("/chat");
 
 			app.MapControllers();
 

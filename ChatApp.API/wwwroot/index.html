@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatApp Test</title>
+</head>
+<body>
+
+
+
+    <input id="token" />
+    <button onclick="connect">connect</button>
+
+
+    <input id="token" placeholder="JWT Token" style="width:500px" />
+    <button onclick="connect()">Connect</button>
+
+    <hr>
+
+    <input id="message" placeholder="Message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <ul id="messages"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+    <script>
+
+        let connection;
+
+        async function connect() {
+
+            const token = document.getElementById("token").value;
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chat", {
+                    accessTokenFactory: () => token
+                })
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveMessage", (user, message) => {
+
+                const li = document.createElement("li");
+                li.textContent = `${user}: ${message}`;
+
+                document.getElementById("messages")
+                    .appendChild(li);
+            });
+
+            await connection.start();
+
+            alert("Connected");
+        }
+
+        async function sendMessage() {
+
+            const message =
+                document.getElementById("message").value;
+
+            await connection.invoke(
+                "SendMessage",
+                message
+            );
+        }
+    </script>
+
+</body>
+</html>

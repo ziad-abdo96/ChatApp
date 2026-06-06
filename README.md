@@ -237,20 +237,6 @@ Main Entities:
 
 ---
 
-## Screenshots
-
-Add screenshots here:
-
-### Swagger
-
-![Swagger](images/swagger.png)
-
-### Chat Page
-
-![Chat](images/chat.png)
-
----
-
 ## Author
 
 **Ziad Abdo**

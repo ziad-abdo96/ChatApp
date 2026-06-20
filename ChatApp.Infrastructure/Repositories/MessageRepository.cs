@@ -23,5 +23,15 @@ namespace ChatApp.Infrastructure.Repositories
 		{
 			return _context.Messages.OrderBy(m => m.SentAt).ToListAsync();
 		}
-	}
+
+		public async Task<List<Message>> GetConversationAsync(int userId, int otherUserId)
+		{
+			return await _context.Messages
+				.Where(m =>
+					(m.SenderId == userId && m.ReceiverId == otherUserId) ||
+					(m.SenderId == otherUserId && m.ReceiverId == userId))
+				.OrderBy(m => m.SentAt)
+				.ToListAsync();
+		}
+}
 }

@@ -1,25 +1,53 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>ChatApp Test</title>
+    <title>ChatApp</title>
+
+    <style>
+        #messages {
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .msg {
+            padding: 5px;
+            margin: 5px 0;
+            background: #eee;
+            width: fit-content;
+            border-radius: 5px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+            .msg.me {
+                background: #0078ff;
+                color: white;
+                margin-left: auto;
+            }
+
+            .msg.other {
+                background: #eee;
+                color: black;
+            }
+    </style>
 </head>
+
 <body>
 
+    <div id="messages"></div>
 
+    <div style="margin-bottom: 15px;">
+        <input  id="token" placeholder="Enter JWT Token.." style="width: 250px;" />
+        <button id="connectBtn" onclick="handleConnect()">Connect to Chat</button>
+    </div>
 
-    <input id="token" />
-    <button onclick="connect">connect</button>
-
-
-    <input id="token" placeholder="JWT Token" style="width:500px" />
-    <button onclick="connect()">Connect</button>
-
-    <hr>
-
-    <input id="message" placeholder="Message" />
+    <hr /> <input type="number" id="receiverId" placeholder="receiverId.." />
+    <input id="message" onkeydown="clickEnter(event)" placeholder="type.." />
     <button onclick="sendMessage()">Send</button>
-
-    <ul id="messages"></ul>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 
@@ -27,41 +55,100 @@
 
         let connection;
 
-        async function connect() {
 
-            const token = document.getElementById("token").value;
+
+        function handleConnect() {
+            const tokenInput = document.getElementById("token").value;
+
+            if (tokenInput.trim() === "") {
+                alert("please enter token before the conneciton");
+                return;
+            }
+            startConnection();
+        }
+
+
+        function startConnection() {
+
+            const connectBtn = document.getElementById("connectBtn");
+            connectBtn.disabled = true;
+            connectBtn.textContent = "Connecting....";
+
+            if (connection && connection.state !== "Disconnected") {
+
+                return;
+
+            }
 
             connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chat", {
-                    accessTokenFactory: () => token
+                    accessTokenFactory: () => document.getElementById("token").value
                 })
-                .withAutomaticReconnect()
+
                 .build();
 
             connection.on("ReceiveMessage", (user, message) => {
 
-                const li = document.createElement("li");
-                li.textContent = `${user}: ${message}`;
+                const div = document.createElement("div");
+                div.className = "msg other";
+                div.textContent = `${user}: ${message}`;
 
-                document.getElementById("messages")
-                    .appendChild(li);
+                const messages = document.getElementById("messages");
+                messages.appendChild(div);
+
+                messages.scrollTop = messages.scrollHeight;
             });
 
-            await connection.start();
-
-            alert("Connected");
+            connection.start()
+                .then(() => {
+                    console.log("Connected Successfully");
+                    connectBtn.textContent = "Connected";
+                    connectBtn.style.backgroundColor = "#4CAF50";
+                    connectBtn.style.color = "white";
+                })
+                .catch(err => {
+                    console.error(err.toString());
+                    alert("connection faild");
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = "Connect to Chat"
+                });
         }
 
-        async function sendMessage() {
-
-            const message =
-                document.getElementById("message").value;
-
-            await connection.invoke(
-                "SendMessage",
-                message
-            );
+        function clickEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
         }
+
+        function sendMessage() {
+
+            const input = document.getElementById("message");
+            const text = input.value;
+
+            if (text.trim() === "") return;
+
+            const div = document.createElement("div");
+            div.className = "msg me";
+
+            const userName = "Ziad";
+            div.textContent = `${userName}: ${text}`;
+
+            const messages = document.getElementById("messages");
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+
+            input.value = "";
+
+            const receiverId = parseInt(document.getElementById("receiverId").value);
+
+
+            if (connection && connection.state === "Connected") {
+                console.log(connection.state);  
+                connection.invoke("SendMessage", receiverId, text);
+            }
+        }
+
+
     </script>
 
 </body>

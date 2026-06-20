@@ -2,6 +2,7 @@
 using ChatApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ChatApp.API.Controllers
 {
@@ -28,6 +29,24 @@ namespace ChatApp.API.Controllers
 				Content = m.Content,
 				SentAt = m.SentAt
 			}).ToList();
+			return Ok(result);
+		}
+
+
+		[HttpGet("conversation/{otherUserId}")]
+		public async Task<IActionResult> GetConversatioin(int otherUserId)
+		{
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+			var messages = await _messageRepository.GetConversationAsync(userId, otherUserId);
+
+			var result = messages.Select(m => new MessageDTO
+			{
+				SenderName = m.SenderName,
+				Content = m.Content,
+				SentAt = m.SentAt
+			}).ToList();
+
 			return Ok(result);
 		}
 	}

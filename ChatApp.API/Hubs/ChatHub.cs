@@ -1,4 +1,5 @@
-﻿using ChatApp.Domain.Entities;
+﻿
+using ChatApp.Domain.Entities;
 using ChatApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -9,6 +10,7 @@ namespace ChatApp.API.Hubs
 	public class ChatHub : Hub
 	{
 		private static readonly HashSet<string> _onlineUsers = new();
+		private static readonly Dictionary<int, string> _connectionUserMap = new();
 		private readonly IMessageRepository _messageRepository;
 
 		public ChatHub(IMessageRepository messageRepository)
@@ -18,6 +20,11 @@ namespace ChatApp.API.Hubs
 		public override async Task OnConnectedAsync()
 		{
 			var userName = Context.User?.Identity?.Name;
+
+			var userId = int.Parse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+
+			_connectionUserMap[userId] = Context.ConnectionId;
+
 			if (!string.IsNullOrEmpty(userName))
 			{
 				_onlineUsers.Add(userName);
@@ -29,6 +36,10 @@ namespace ChatApp.API.Hubs
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
 			var userName = Context.User?.Identity?.Name;
+			var userId = int.Parse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+
+			_connectionUserMap.Remove(userId);
+
 			if (!string.IsNullOrEmpty(userName))
 			{
 				_onlineUsers.Remove(userName);
@@ -38,28 +49,32 @@ namespace ChatApp.API.Hubs
 		}
 
 
-		public async Task SendMessage(string message)
+		public async Task SendMessage(int receiverId, string message)
 		{
 			if (string.IsNullOrWhiteSpace(message))
 				return;
 			var userName = Context.User?.Identity?.Name;
 			var userId = int.Parse(Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+			Console.WriteLine($"ReceiverId: {receiverId}");
+			Console.WriteLine($"Connections: {string.Join(",", _connectionUserMap.Keys)}");
 			var newMessage = new Message
 			{
 				Content = message,
 				SenderName = userName!,
 				SenderId = userId,
+				ReceiverId = receiverId,
 				SentAt = DateTime.UtcNow,
 			};
 
 			await _messageRepository.AddAsync(newMessage);
+			if (_connectionUserMap.TryGetValue(receiverId, out var connectionId))
+			{
+				await Clients.Client(connectionId)
+					.SendAsync("ReceiveMessage", userName, message);
+			}
 
-			await Clients.All.SendAsync(
-				"ReceiveMessage",
-				userName,
-				message
-				);
 		}
 
 	}
+	
 }

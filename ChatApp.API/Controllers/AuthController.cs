@@ -1,6 +1,5 @@
 ﻿using ChatApp.Application.DTOs;
 using ChatApp.Application.Interfaces;
-using ChatApp.Application.Services;
 using ChatApp.Domain.Entities;
 using ChatApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +22,9 @@ namespace ChatApp.API.Controllers
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
 		{
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState);
+
 			var user = await _userRepository.GetByEmailAsync(loginDTO.Email);
 
 			if (user == null || !BCrypt.Net.BCrypt.Verify(loginDTO.Password, user.PasswordHash))
@@ -35,6 +37,8 @@ namespace ChatApp.API.Controllers
 		[HttpPost("register")]
 		public async Task<IActionResult> Register([FromBody] RegisterDTO registerDTO)
 		{
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState);	
 			var existingUser = await _userRepository.GetByEmailAsync(registerDTO.Email);
 
 			if (existingUser != null)

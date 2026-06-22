@@ -4,6 +4,11 @@
     <title>ChatApp</title>
 
     <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
         #messages {
             height: 300px;
             border: 1px solid #ccc;
@@ -14,39 +19,59 @@
         }
 
         .msg {
-            padding: 5px;
-            margin: 5px 0;
-            background: #eee;
+            padding: 8px 12px;
+            margin: 6px 0;
             width: fit-content;
-            border-radius: 5px;
+            border-radius: 10px;
             max-width: 70%;
             word-wrap: break-word;
         }
 
-            .msg.me {
-                background: #0078ff;
-                color: white;
-                margin-left: auto;
-            }
+        .msg.me {
+            background: #0078ff;
+            color: white;
+            margin-left: auto;
+        }
 
-            .msg.other {
-                background: #eee;
-                color: black;
-            }
+        .msg.other {
+            background: #eee;
+            color: black;
+        }
+
+        .top-bar {
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        #connectBtn {
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
 
+    <h2>💬 ChatApp</h2>
+
     <div id="messages"></div>
 
-    <div style="margin-bottom: 15px;">
-        <input  id="token" placeholder="Enter JWT Token.." style="width: 250px;" />
-        <button id="connectBtn" onclick="handleConnect()">Connect to Chat</button>
+    <div class="top-bar">
+        <input id="token" placeholder="Enter JWT Token.." style="width: 300px;" />
+        <button id="connectBtn" onclick="handleConnect()">Connect</button>
     </div>
 
-    <hr /> <input type="number" id="receiverId" placeholder="receiverId.." />
-    <input id="message" onkeydown="clickEnter(event)" placeholder="type.." />
+    <hr />
+
+    <select id="receiverIdSelect"  onchange="loadConversation()">
+        <option value="">Select User</option>
+    </select>
+
+
+    <input id="message" onkeydown="clickEnter(event)" placeholder="type message..." />
     <button onclick="sendMessage()">Send</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
@@ -55,38 +80,33 @@
 
         let connection;
 
-
-
+        
         function handleConnect() {
-            const tokenInput = document.getElementById("token").value;
 
-            if (tokenInput.trim() === "") {
-                alert("please enter token before the conneciton");
+            const token = document.getElementById("token").value;
+
+            if (!token.trim()) {
+                alert("Please enter token");
                 return;
             }
+
             startConnection();
         }
 
-
         function startConnection() {
 
-            const connectBtn = document.getElementById("connectBtn");
-            connectBtn.disabled = true;
-            connectBtn.textContent = "Connecting....";
+            const btn = document.getElementById("connectBtn");
 
-            if (connection && connection.state !== "Disconnected") {
-
-                return;
-
-            }
+            btn.disabled = true;
+            btn.textContent = "Connecting...";
 
             connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chat", {
                     accessTokenFactory: () => document.getElementById("token").value
                 })
-
                 .build();
 
+       
             connection.on("ReceiveMessage", (user, message) => {
 
                 const div = document.createElement("div");
@@ -95,43 +115,110 @@
 
                 const messages = document.getElementById("messages");
                 messages.appendChild(div);
-
                 messages.scrollTop = messages.scrollHeight;
             });
 
             connection.start()
                 .then(() => {
-                    console.log("Connected Successfully");
-                    connectBtn.textContent = "Connected";
-                    connectBtn.style.backgroundColor = "#4CAF50";
-                    connectBtn.style.color = "white";
+                    console.log("Connected");
+
+                    btn.textContent = "Connected";
+                    btn.style.backgroundColor = "green";
+                    btn.style.color = "white";
+
+                    loadUsers();
                 })
                 .catch(err => {
-                    console.error(err.toString());
-                    alert("connection faild");
-                    connectBtn.disabled = false;
-                    connectBtn.textContent = "Connect to Chat"
+                    console.error(err);
+
+                    btn.disabled = false;
+                    btn.textContent = "Connect";
                 });
         }
 
-        function clickEnter(event) {
-            if (event.key === "Enter") {
-                sendMessage();
+        async function loadUsers() {
+
+            const response = await fetch("/api/users", {
+                headers: {
+                    "Authorization": "Bearer " + document.getElementById("token").value
+                }
+            });
+
+            if (!response.ok) {
+                console.log("Failed to load users:", response.status);
+                return;
             }
+
+            const users = await response.json();
+
+            const select = document.getElementById("receiverIdSelect");
+
+            users.forEach(user => {
+
+                const option = document.createElement("option");
+
+                option.value = user.id;
+                option.textContent = user.userName;
+
+                select.appendChild(option);
+            });
         }
 
+        async function loadConversation() {
+
+            const receiverId = parseInt(document.getElementById("receiverIdSelect").value);
+
+            if (!receiverId)
+                return;
+
+            const response = await fetch(`/api/Message/conversation/${receiverId}`, {
+                headers: {
+                    "Authorization": "Bearer " + document.getElementById("token").value
+                }
+            });
+
+            const messages = await response.json();
+
+            const messagesDiv = document.getElementById("messages");
+
+            messagesDiv.innerHTML = "";
+
+            const token = document.getElementById("token").value;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const currentUserId = parseInt(payload.nameid);
+
+            messages.forEach(msg => {
+
+                const div = document.createElement("div");
+
+                div.className = msg.senderId === currentUserId ? "msg me" : "msg other";
+
+                div.textContent = `${msg.senderName}: ${msg.content}`;
+
+                messagesDiv.appendChild(div);
+            });
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+      
         function sendMessage() {
 
             const input = document.getElementById("message");
             const text = input.value;
 
-            if (text.trim() === "") return;
+            if (!text.trim()) return;
 
+            const receiverId = parseInt(document.getElementById("receiverIdSelect").value);
+
+            if (!receiverId) {
+                alert("Select user first");
+                return;
+            }
+
+       
             const div = document.createElement("div");
             div.className = "msg me";
-
-            const userName = "Ziad";
-            div.textContent = `${userName}: ${text}`;
+            div.textContent = `Me: ${text}`;
 
             const messages = document.getElementById("messages");
             messages.appendChild(div);
@@ -139,15 +226,18 @@
 
             input.value = "";
 
-            const receiverId = parseInt(document.getElementById("receiverId").value);
-
 
             if (connection && connection.state === "Connected") {
-                console.log(connection.state);  
                 connection.invoke("SendMessage", receiverId, text);
             }
         }
 
+
+        function clickEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
 
     </script>
 

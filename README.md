@@ -1,10 +1,10 @@
 # ChatApp
 
-A real-time chat application built with ASP.NET Core and SignalR following Clean Architecture principles.
+A real-time private chat application built with ASP.NET Core, SignalR, and Clean Architecture principles.
 
 ## Overview
 
-ChatApp is a real-time messaging application that allows authenticated users to communicate instantly using SignalR. The application uses JWT Authentication for securing APIs and SignalR connections and persists chat messages in SQL Server using Entity Framework Core.
+ChatApp is a real-time messaging application that enables authenticated users to communicate instantly through private conversations. The application uses JWT Authentication to secure APIs and SignalR connections while persisting messages in SQL Server using Entity Framework Core.
 
 ---
 
@@ -12,32 +12,34 @@ ChatApp is a real-time messaging application that allows authenticated users to 
 
 ### Authentication & Authorization
 
-- User Registration
-- User Login
-- Password Hashing with BCrypt
-- JWT Authentication
-- Protected API Endpoints
-- Protected SignalR Hub
+* User Registration
+* User Login
+* Password Hashing with BCrypt
+* JWT Authentication
+* JWT Authorization
+* Protected API Endpoints
+* Protected SignalR Hub
 
 ### Real-Time Communication
 
-- Real-Time Messaging with SignalR
-- Online Users Tracking
-- Connection Lifecycle Handling
-- Message Broadcasting
+* Real-Time Private Messaging with SignalR
+* Online Users Tracking
+* Connection Lifecycle Handling
+* User-to-User Messaging
+* Conversation History Between Users
 
 ### Data Persistence
 
-- Store Messages in SQL Server
-- Retrieve Chat History
-- Entity Framework Core Migrations
+* Store Messages in SQL Server
+* Retrieve Conversation History
+* Entity Framework Core Migrations
 
 ### Architecture
 
-- Clean Architecture
-- Repository Pattern
-- Dependency Injection
-- Separation of Concerns
+* Clean Architecture
+* Repository Pattern
+* Dependency Injection
+* Separation of Concerns
 
 ---
 
@@ -45,20 +47,20 @@ ChatApp is a real-time messaging application that allows authenticated users to 
 
 ### Backend
 
-- ASP.NET Core Web API
-- SignalR
-- Entity Framework Core
-- SQL Server
+* ASP.NET Core 8 Web API
+* SignalR
+* Entity Framework Core
+* SQL Server
 
 ### Security
 
-- JWT Bearer Authentication
-- BCrypt Password Hashing
+* JWT Bearer Authentication
+* BCrypt Password Hashing
 
 ### Tools
 
-- Swagger / OpenAPI
-- Git & GitHub
+* Swagger / OpenAPI
+* Git & GitHub
 
 ---
 
@@ -106,26 +108,26 @@ Infrastructure Layer
 
 #### API Layer
 
-- Controllers
-- SignalR Hub
-- Authentication Configuration
+* Controllers
+* SignalR Hub
+* Authentication Configuration
 
 #### Application Layer
 
-- DTOs
-- Business Services
-- JWT Service
+* DTOs
+* Business Services
+* JWT Services
 
 #### Domain Layer
 
-- Entities
-- Repository Contracts
+* Entities
+* Repository Contracts
 
 #### Infrastructure Layer
 
-- Entity Framework Core
-- Database Access
-- Repository Implementations
+* Entity Framework Core
+* Database Access
+* Repository Implementations
 
 ---
 
@@ -157,10 +159,32 @@ Returns:
 
 ### Messages
 
-#### Get Chat History
+#### Get All Messages
 
 ```http
 GET /api/Message
+```
+
+#### Get Conversation Between Two Users
+
+```http
+GET /api/Message/conversation/{userId}
+```
+
+---
+
+### Users
+
+#### Get Current User
+
+```http
+GET /api/Users/me
+```
+
+#### Get All Users
+
+```http
+GET /api/Users
 ```
 
 ---
@@ -171,6 +195,14 @@ GET /api/Message
 
 ```http
 /Chat
+```
+
+### Hub Methods
+
+#### SendMessage
+
+```text
+SendMessage(receiverId, message)
 ```
 
 ### Events
@@ -193,8 +225,8 @@ OnlineUsersUpdated(users)
 
 JWT Bearer Authentication is used to secure:
 
-- API Endpoints
-- SignalR Connections
+* API Endpoints
+* SignalR Connections
 
 Each authenticated user receives a JWT token after login.
 
@@ -202,38 +234,36 @@ Each authenticated user receives a JWT token after login.
 
 ## Database
 
-SQL Server with Entity Framework Core Code-First approach.
+SQL Server using Entity Framework Core Code-First approach.
 
-Main Entities:
+### User Entity
 
-### User
+* Id
+* UserName
+* Email
+* PasswordHash
+* CreatedAt
 
-- Id
-- UserName
-- Email
-- PasswordHash
-- CreatedAt
+### Message Entity
 
-### Message
-
-- Id
-- Content
-- SenderId
-- SenderName
-- SentAt
+* Id
+* Content
+* SenderId
+* ReceiverId
+* SenderName
+* SentAt
 
 ---
 
 ## Future Improvements
 
-- Private Chat
-- Chat Rooms
-- Group Messaging
-- Typing Indicator
-- Read Receipts
-- Refresh Tokens
-- Message Editing
-- Message Deletion
+* Group Chat
+* Typing Indicator
+* Read Receipts
+* Refresh Tokens
+* Message Editing
+* Message Deletion
+* User Online Status API
 
 ---
 
@@ -241,4 +271,5 @@ Main Entities:
 
 **Ziad Abdo**
 
-GitHub: https://github.com/ziad-abdo96
+GitHub:
+https://github.com/ziad-abdo96

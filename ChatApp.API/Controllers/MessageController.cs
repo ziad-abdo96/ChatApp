@@ -25,6 +25,7 @@ namespace ChatApp.API.Controllers
 
 			var result = messages.Select(m => new MessageDTO
 			{
+				SenderId = m.SenderId,
 				SenderName = m.SenderName,
 				Content = m.Content,
 				SentAt = m.SentAt
@@ -42,6 +43,7 @@ namespace ChatApp.API.Controllers
 
 			var result = messages.Select(m => new MessageDTO
 			{
+				SenderId = m.SenderId,
 				SenderName = m.SenderName,
 				Content = m.Content,
 				SentAt = m.SentAt

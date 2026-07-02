@@ -1,10 +1,10 @@
 # ChatApp
 
-A real-time private chat application built with ASP.NET Core, SignalR, and Clean Architecture principles.
+A real-time chat application built with ASP.NET Core, SignalR, and Clean Architecture principles, supporting both private and group messaging.
 
 ## Overview
 
-ChatApp is a real-time messaging application that enables authenticated users to communicate instantly through private conversations. The application uses JWT Authentication to secure APIs and SignalR connections while persisting messages in SQL Server using Entity Framework Core.
+ChatApp is a real-time messaging application that enables authenticated users to communicate instantly through both private and group conversations. The application uses JWT Authentication to secure REST APIs and SignalR connections while persisting data in SQL Server using Entity Framework Core.
 
 ---
 
@@ -20,17 +20,30 @@ ChatApp is a real-time messaging application that enables authenticated users to
 * Protected API Endpoints
 * Protected SignalR Hub
 
-### Real-Time Communication
+### Private Chat
 
 * Real-Time Private Messaging with SignalR
-* Online Users Tracking
-* Connection Lifecycle Handling
 * User-to-User Messaging
 * Conversation History Between Users
+* Online Users Tracking
+* Connection Lifecycle Handling
+
+### Group Chat
+
+* Create Chat Groups
+* Delete Chat Groups
+* Add Members to Groups
+* Remove Members from Groups
+* Retrieve User Groups
+* Retrieve Group Members
+* Join Group Conversations
+* Real-Time Group Messaging
+* Group Message Persistence
 
 ### Data Persistence
 
-* Store Messages in SQL Server
+* Store Private Messages in SQL Server
+* Store Group Messages in SQL Server
 * Retrieve Conversation History
 * Entity Framework Core Migrations
 
@@ -40,6 +53,7 @@ ChatApp is a real-time messaging application that enables authenticated users to
 * Repository Pattern
 * Dependency Injection
 * Separation of Concerns
+* SignalR Connection Management
 
 ---
 
@@ -56,6 +70,12 @@ ChatApp is a real-time messaging application that enables authenticated users to
 
 * JWT Bearer Authentication
 * BCrypt Password Hashing
+
+### Design
+
+* Clean Architecture
+* Repository Pattern
+* Dependency Injection
 
 ### Tools
 
@@ -108,7 +128,7 @@ Infrastructure Layer
 
 #### API Layer
 
-* Controllers
+* REST Controllers
 * SignalR Hub
 * Authentication Configuration
 
@@ -116,7 +136,6 @@ Infrastructure Layer
 
 * DTOs
 * Business Services
-* JWT Services
 
 #### Domain Layer
 
@@ -126,8 +145,9 @@ Infrastructure Layer
 #### Infrastructure Layer
 
 * Entity Framework Core
-* Database Access
 * Repository Implementations
+* SQL Server
+* SignalR Connection Management
 
 ---
 
@@ -157,22 +177,6 @@ Returns:
 
 ---
 
-### Messages
-
-#### Get All Messages
-
-```http
-GET /api/Message
-```
-
-#### Get Conversation Between Two Users
-
-```http
-GET /api/Message/conversation/{userId}
-```
-
----
-
 ### Users
 
 #### Get Current User
@@ -189,6 +193,62 @@ GET /api/Users
 
 ---
 
+### Messages
+
+#### Get Conversation Between Two Users
+
+```http
+GET /api/Message/conversation/{userId}
+```
+
+---
+
+### Groups
+
+#### Create Group
+
+```http
+POST /api/Group
+```
+
+#### Get User Groups
+
+```http
+GET /api/Group/my
+```
+
+#### Get Group Details
+
+```http
+GET /api/Group/{groupId}
+```
+
+#### Delete Group
+
+```http
+DELETE /api/Group/{groupId}
+```
+
+#### Add Member
+
+```http
+POST /api/Group/{groupId}/members
+```
+
+#### Remove Member
+
+```http
+DELETE /api/Group/{groupId}/members/{memberId}
+```
+
+#### Get Group Members
+
+```http
+GET /api/Group/{groupId}/members
+```
+
+---
+
 ## SignalR Hub
 
 ### Hub Endpoint
@@ -199,21 +259,35 @@ GET /api/Users
 
 ### Hub Methods
 
-#### SendMessage
+#### Private Chat
 
 ```text
 SendMessage(receiverId, message)
 ```
 
+#### Group Chat
+
+```text
+JoinGroup(groupId)
+
+SendGroupMessage(groupId, message)
+```
+
 ### Events
 
-#### ReceiveMessage
+#### Private Messages
 
 ```text
 ReceiveMessage(username, message)
 ```
 
-#### OnlineUsersUpdated
+#### Group Messages
+
+```text
+ReceiveGroupMessage(userId, username, message, groupId)
+```
+
+#### Online Users
 
 ```text
 OnlineUsersUpdated(users)
@@ -223,9 +297,9 @@ OnlineUsersUpdated(users)
 
 ## Authentication
 
-JWT Bearer Authentication is used to secure:
+JWT Bearer Authentication secures:
 
-* API Endpoints
+* REST API Endpoints
 * SignalR Connections
 
 Each authenticated user receives a JWT token after login.
@@ -234,9 +308,9 @@ Each authenticated user receives a JWT token after login.
 
 ## Database
 
-SQL Server using Entity Framework Core Code-First approach.
+SQL Server using Entity Framework Core (Code-First).
 
-### User Entity
+### User
 
 * Id
 * UserName
@@ -244,26 +318,25 @@ SQL Server using Entity Framework Core Code-First approach.
 * PasswordHash
 * CreatedAt
 
-### Message Entity
+### Message
 
 * Id
 * Content
 * SenderId
 * ReceiverId
-* SenderName
+* GroupId
 * SentAt
 
----
+### ChatGroup
 
-## Future Improvements
+* Id
+* Name
+* OwnerId
 
-* Group Chat
-* Typing Indicator
-* Read Receipts
-* Refresh Tokens
-* Message Editing
-* Message Deletion
-* User Online Status API
+### GroupMember
+
+* UserId
+* GroupId
 
 ---
 
@@ -271,5 +344,4 @@ SQL Server using Entity Framework Core Code-First approach.
 
 **Ziad Abdo**
 
-GitHub:
-https://github.com/ziad-abdo96
+GitHub: https://github.com/ziad-abdo96

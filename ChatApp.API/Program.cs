@@ -65,6 +65,7 @@ namespace ChatApp.API
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 			builder.Services.AddScoped<IJwtService, JwtService>();
+			builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
 			var jwtKey = builder.Configuration["Jwt:Key"];
 			if(string.IsNullOrEmpty(jwtKey))

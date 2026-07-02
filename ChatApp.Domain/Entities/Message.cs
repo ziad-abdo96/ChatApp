@@ -7,8 +7,16 @@ public class Message
 	public string Content { get; set; } = string.Empty;
 
 	public int SenderId { get; set; }
-	public int ReceiverId { get; set; }
-	public string SenderName { get; set; } = string.Empty;
+
+	public User Sender { get; set; } = null!;
+
+	public int? ReceiverId { get; set; }
+
+	public User? Receiver { get; set; }
+
+	public int? GroupId { get; set; }
+
+	public ChatGroup? Group { get; set; }
 
 	public DateTime SentAt { get; set; } = DateTime.UtcNow;
 }

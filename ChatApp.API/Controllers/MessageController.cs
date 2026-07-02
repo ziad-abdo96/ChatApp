@@ -26,7 +26,7 @@ namespace ChatApp.API.Controllers
 			var result = messages.Select(m => new MessageDTO
 			{
 				SenderId = m.SenderId,
-				SenderName = m.SenderName,
+				SenderName = m.Sender.UserName,
 				Content = m.Content,
 				SentAt = m.SentAt
 			}).ToList();
@@ -44,12 +44,31 @@ namespace ChatApp.API.Controllers
 			var result = messages.Select(m => new MessageDTO
 			{
 				SenderId = m.SenderId,
-				SenderName = m.SenderName,
+				SenderName = m.Sender.UserName,
 				Content = m.Content,
 				SentAt = m.SentAt
 			}).ToList();
 
 			return Ok(result);
 		}
+
+		[HttpGet("group/{gorupId}")]
+		public async Task<IActionResult> GetGroupMessages(int groupId)
+		{
+			var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+			var messages = await _messageRepository.GetGroupMessagesAsync(groupId);
+
+			var result = messages.Select(m => new MessageDTO
+			{
+				SenderId = m.SenderId,
+				SenderName = m.Sender.UserName,
+				Content = m.Content,
+				SentAt = m.SentAt
+			}).ToList();
+
+			return Ok(result);
+		}
+
 	}
 }

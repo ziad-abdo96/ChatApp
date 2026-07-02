@@ -7,5 +7,6 @@ namespace ChatApp.Domain.Interfaces
 		Task AddAsync(Message message);
 		Task<List<Message>> GetAllAsync();
 		Task<List<Message>> GetConversationAsync(int userId, int otherUserId);
+		Task<List<Message>> GetGroupMessagesAsync(int groupId);
 	}
 }
